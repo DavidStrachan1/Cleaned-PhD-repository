@@ -14,6 +14,7 @@
     export rdm_to_MPS_for_qubit
     export ρ_diff_average_fermions
     export ρ_diff_average_SB
+    export extrapolation_vs_map_propagation_spin_boson
     export extrapolation_vs_map_propagation_fermions
     export extrapolation_vs_map_propagation_with_incremental_maps
     export incremental_maps
@@ -22,6 +23,7 @@
     ##Markovian calculations
     export markovian_green_function_calculation
     export markovian_Lindbladian
+    export SB_lindblad_rates
 
     ###Convergence analysis/various functions for methodology paper
     export calculate_ρ_sys_using_G
@@ -1523,7 +1525,64 @@
         end
         return ρ_diff_average_vec,corr_diff_average_vec,corr_diff_max_vec
     end
-    
+
+    function extrapolation_vs_map_propagation_spin_boson(ρ_init,L_vec,Λ_vec,memory_time,NESS_times)
+
+        memory_time_ind = Int(memory_time/(P.n*P.δt))
+
+        #ρ_init = vectorise_ρ(DP.ψ_init,P,DP;use_spin_operators=true)
+        #ρ_init = [0,0,0,1]#[1 0;0 0]
+
+
+        ρ_vec1 = Vector{Any}(undef,length(NESS_times)+1)
+        σz_vec1 = zeros(length(ρ_vec1))
+        σx_vec1= zeros(length(ρ_vec1))
+        coherence_vec1 = complex(similar(σz_vec1))
+        coherence_vec2 = complex(similar(σz_vec1))
+
+        ρ_vec2 = Vector{Any}(undef,length(NESS_times)+1)
+        σz_vec2 = zeros(length(ρ_vec1))
+        σx_vec2= zeros(length(ρ_vec1))
+
+        ρ_diff = similar(ρ_vec1)
+
+        ρ_vec1[1] = ρ_init
+        ρ_vec2[1] = ρ_init
+        ρ_diff[1] = 0
+        σz_vec1[1] = 0.5*real(ρ_init[1]-ρ_init[4])
+        σx_vec1[1] = 0.5*real(ρ_init[2]+ρ_init[3])
+        σz_vec2[1] = 0.5*real(ρ_init[1]-ρ_init[4])
+        σx_vec2[1] = 0.5*real(ρ_init[2]+ρ_init[3])
+        coherence_vec1[1] = ρ_init[2]
+        coherence_vec2[1] = ρ_init[2]
+        for i =1:length(NESS_times)
+            
+            ρ1= Λ_vec[i]*ρ_init
+            if NESS_times[i] >=memory_time
+                ρ2 = exp(L_vec[memory_time_ind]*P.n*P.δt)*ρ_vec2[i]
+            else
+                ρ2 = Λ_vec[i]*ρ_init
+                
+            end
+
+            σz_vec1[i+1] = 0.5*real(ρ1[1]-ρ1[4])
+            σx_vec1[i+1] = 0.5*real(ρ1[2]+ρ1[3])
+            σz_vec2[i+1] = 0.5*real(ρ2[1]-ρ2[4])
+            σx_vec2[i+1] = 0.5*real(ρ2[2]+ρ2[3])
+            coherence_vec1[i+1] = ρ1[2]
+            coherence_vec2[i+1] = ρ2[2]
+            ρ_diff[i+1] = norm(ρ1-ρ2)
+            ρ_vec1[i+1] = ρ1
+            ρ_vec2[i+1] = ρ2
+        end
+        Plots.plot([0;NESS_times],σz_vec1,label="σz1")
+        Plots.plot!([0;NESS_times],σz_vec2,label="σz2")
+        # Plots.plot!([0;NESS_times],σx_vec1,label="σx1")
+        # display(Plots.plot!([0;NESS_times],σx_vec2,label="σx2",legend = :right))
+        # display(Plots.plot([0;NESS_times],ρ_diff))
+        return σz_vec1,coherence_vec1,coherence_vec2,ρ_vec1
+    end
+        
     function extrapolation_vs_map_propagation_fermions(ρ_init,site,L_vec,Λ_vec,memory_time,NESS_times,P)
         """
         Lm is the converged propagator, where m denotes the memory.
@@ -1751,6 +1810,37 @@
         trace = sum(Left_vac .*ρeq)
         ρeq = ρeq/trace
         return L_markovian,Ldag_markovian,ρeq,Left_vac
+    end
+
+    function SB_lindblad_rates(L_vec)
+        #Using formula A7 in https://journals.aps.org/pra/pdf/10.1103/PhysRevA.89.042120
+
+        #For the spin boson, the G matrices are given by the pauli operators and the identity
+        G0 = (1/√2)*[1 0;0 1]
+        G1 = [1 0;0 -1]
+        G2 = [0 1;1 0]
+        G3 = [0 -im;im 0]
+        G_matrices = [G0,G1,G2,G3]
+        decoherence_matrix_vector = Vector{Any}(undef,length(L_vec))
+        lindblad_rates_vector = complex(zeros(length(L_vec),3))
+        @showprogress for (n,L) in enumerate(L_vec)
+            decoherence_matrix = complex(zeros(3,3))
+            for i = 1:3
+                for j=1:3
+                    dij = 0
+                    for m=1:4
+                        ##apply propagator to Gm
+                        op_t = unvectorise_ρ(L*vectorise_mat(G_matrices[m]),false)
+                        operator = G_matrices[m]*G_matrices[i+1]*op_t*G_matrices[j+1]
+                        dij += tr(operator)
+                    end
+                    decoherence_matrix[i,j] = dij
+                end
+            end
+            decoherence_matrix_vector[n] = decoherence_matrix
+            lindblad_rates_vector[n,:] = eigen(decoherence_matrix).values
+        end
+        return lindblad_rates_vector
     end
 
     function calculate_ρ_sys_using_G(corr,DP,P)
