@@ -17,6 +17,21 @@ using Kronecker
 using SparseArrays
 using Base.Threads
 using Adapt: adapt
+using ITensors:
+      ITensors,
+      Algorithm,
+      Index,
+      ITensor,
+      @Algorithm_str,
+      δ,
+      commonind,
+      dag,
+      denseblocks,
+      directsum,
+      hasqns,
+      prime,
+      scalartype,
+      uniqueinds
 using NDTensors: unwrap_array_type
 using DataFrames
 

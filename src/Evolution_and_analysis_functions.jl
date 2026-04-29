@@ -2559,16 +2559,6 @@ end
 
 
 
-
-    function JW_string_mat(Sz,site,M)
-        Z = 1.0*Matrix(I, 2^M, 2^M)
-        for q=1:(site-1)
-            Z = Z*Sz[q];
-        end
-        return Z
-    end
-
-
     function N_superoperator(Ns)
         d = 2^Ns
         Id = Diagonal(ones(Float64,d))
