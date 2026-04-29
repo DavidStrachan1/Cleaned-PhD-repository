@@ -1,22 +1,3 @@
-module NESS_analysis
-    using LinearAlgebra
-    using Trapz
-    using DSP
-    using SparseArrays
-    using Kronecker
-    using ProgressMeter
-    using Plots
-    using ITensors
-    using ITensorMPS
-    using Observers
-    include("Bath_rep_general.jl")
-    include("Ancillary_functions_with_ITensor.jl")
-    include("ITensor_init_general.jl")
-    using .Bath_representation
-    using .Ancillary_functions
-    using .ITensor_functions
-    ITensors.set_warn_order(25)
-
 
 
     ##multitime_correlators_using_NMQMpE method, with rdm_to_MPS and related functions
@@ -3342,5 +3323,3 @@ end
     end
 
 
-
-end

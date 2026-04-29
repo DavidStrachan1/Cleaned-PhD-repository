@@ -1,20 +1,3 @@
-module Bath_representation
-    using LinearAlgebra
-    using PolyChaos
-    using Trapz
-    using DSP
-    using ITensors
-    using Plots 
-    using ProgressMeter
-    include("Ancillary_functions_with_ITensor.jl")
-    include("HamiltonianBuilding.jl")
-    include("ITensor_init_general.jl")
-    #include("Markovian_closure_functions.jl")
-    using .Ancillary_functions
-    using .HamiltonianBuilding
-    using .ITensor_functions
-   # using .Markovian_closure_functions
-
 
 
    
@@ -70,14 +53,6 @@ module Bath_representation
         
 
 
-    
-    """
-    MODULE STRUCTURE:
-    -Struct definitions.
-    -Struct initialisation.
-    -Spectral density and mappings.
-    -Creation of Hamiltonian and initial correlation matrix.
-    """
 
     mutable struct Base_params
         ###Bath params

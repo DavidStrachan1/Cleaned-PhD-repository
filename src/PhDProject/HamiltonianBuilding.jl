@@ -1,8 +1,8 @@
-module HamiltonianBuilding
+# module HamiltonianBuilding
 
 export build_from_matrix,insert_sites,insert_ancilla
 
-using ITensors
+# using ITensors
 
 """
     build_from_matrix(coefficents::AbstractMatrix, leftops, rightops,offset::Integer=0)::OpSum
@@ -124,4 +124,4 @@ function insert_ancilla(ops,system_sites)
     insert_sites(ops,ancilla_positions)
 end
 
-end
+# end
