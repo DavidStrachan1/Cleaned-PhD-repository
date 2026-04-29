@@ -5,7 +5,6 @@ using LinearAlgebra
 using PolyChaos
 using Trapz
 using DSP
-using ITensors
 using Plots 
 using ProgressMeter
 using ITensorMPS

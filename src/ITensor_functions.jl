@@ -4,9 +4,6 @@ rightlim(m::AbstractMPS) = m.rlim
 
 
 
-include("Ancillary_functions_with_ITensor.jl")    
-using .Ancillary_functions
-
 
 """
 Initialising state

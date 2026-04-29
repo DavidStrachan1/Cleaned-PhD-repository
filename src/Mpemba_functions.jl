@@ -1,17 +1,3 @@
-module Mpemba_functions
-    using LinearAlgebra
-    #using PlotlyJS
-    using DataFrames
-    using LaTeXStrings
-    using ProgressMeter
-    include("NESS_analysis_general.jl")
-    include("Ancillary_functions_with_ITensor.jl")
-    include("Bath_rep_general.jl")
-    
-    
-    using .NESS_analysis
-    using .Bath_representation
-    using .Ancillary_functions
 
     export sweep_over_param_space
     export sweep_over_param_space_general
@@ -795,5 +781,3 @@ function dpdt(p_vec,t)
     return dpdt
 end
 
-
-end

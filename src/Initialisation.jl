@@ -2103,4 +2103,3 @@ function NEQ_SIAM_DP_initialisation(P)
         end
         return G_int
     end
-end
