@@ -2790,7 +2790,7 @@ end
                 push!(spin_sites,i)
             end
         end
-        return expect(state,"Sx",sites=spin_sites[1:2:end])
+        return expect(state,"Sx",sites=spin_sites)
     end
 end
 
@@ -2802,7 +2802,7 @@ function measure_pauli_y(; state, bond, half_sweep)
                 push!(spin_sites,i)
             end
         end
-        return expect(state,"Sy",sites=spin_sites[1:2:end])
+        return expect(state,"Sy",sites=spin_sites)
     end
 end
 
@@ -2814,7 +2814,7 @@ function measure_pauli_z(; state, bond, half_sweep)
                 push!(spin_sites,i)
             end
         end
-        return expect(state,"Sz",sites=spin_sites[1:2:end])
+        return expect(state,"Sz",sites=spin_sites)
     end
 end
 
