@@ -1,0 +1,30 @@
+# PDF files
+*.pdf
+
+# Julia binary formats
+*.jld2
+*.jld
+
+# Jupyter notebook metadata
+.ipynb_checkpoints/
+
+# Julia compiled files
+*.ji
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+
+# Julia project files
+Manifest.toml
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS-specific files
+.DS_Store
+Thumbs.db
