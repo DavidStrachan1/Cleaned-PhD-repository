@@ -1,6 +1,9 @@
 # PDF files
 *.pdf
 
+# GIF files
+*.gif
+
 # Julia binary formats
 *.jld2
 *.jld
