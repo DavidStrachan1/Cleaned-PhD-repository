@@ -244,6 +244,53 @@ module map_calculations
 
         return Λ
     end
+    function compute_maps(corrs,δt,sys_anc_inds,ancilla_inds;kwargs...)
+        Λ_vec = similar(corrs)
+        L_vec = Vector{Any}(undef,length(Λ_vec)-2)
+        println("Calculating Λ(t) from the single particle correlation matrix.")
+        @showprogress for i =1:length(corrs)
+            Λ_vec[i] = map_calculations.calculate_Λ_from_correlation_matrix(corrs[i],sys_anc_inds,ancilla_inds; eps=1e-14,kwargs...)
+            if i>2
+                L = (Λ_vec[i] - Λ_vec[i-2])/(2*δt)
+                L = L * pinv(Λ_vec[i-1])
+                L_vec[i-2] = L
+            end
+        end
+        return Λ_vec,L_vec
+    end
+    function compute_spectra(Λ_vec,L_vec)
+        spectra_Λ = complex(zeros(length(Λ_vec),size(Λ_vec[1])[1]))
+        spectra_L = complex(zeros(length(L_vec),size(Λ_vec[1])[1]))
+        println("computing map spectra")
+        [spectra_Λ[i,:] = eigen(Λ_vec[i]).values for i=1:length(Λ_vec)] 
+        println("computing propagator spectra")
+        [spectra_L[i,:] = eigen(L_vec[i]).values for i=1:length(L_vec)] 
+        return spectra_Λ,spectra_L
+    end
+    function NESS_extraction(map,Λ_or_L,Nsys;kwargs...)
+
+        symmetry_subspace = get(kwargs,:symmetry_subspace, "Number conserving")
+        spec = eigen(map).values
+        vecs = eigen(map).vectors
+        spec = map_to_principal.(spec)
+
+        vec = zeros(ComplexF64,2^(2*Nsys))
+        qN = map_calculations.extract_physical_modes(Nsys)
+
+        if Λ_or_L == "Λ"
+            ind = argmax(real.(spec))
+        elseif Λ_or_L == "L"
+            ind = argmin(abs.(spec))
+        end
+        if symmetry_subspace == "Number conserving"
+            vec[qN] = vecs[:,ind]
+        else
+            vec = vecs[:,ind]
+        end
+        vec =unvectorise_ρ(vec,true)
+        return vec
+    end
+
     function ρ_to_Λ(ρ,Ns)
         d = 2^Ns
         Λ = zeros(ComplexF64, d^2, d^2) 
@@ -326,34 +373,9 @@ module map_calculations
         end
         return vec
     end
-    
-    function compute_maps(corrs,δt,sys_anc_inds,ancilla_inds)
-        Λ_vec = similar(corrs)
-        L_vec = Vector{Any}(undef,length(Λ_vec)-2)
-        println("Calculating Λ(t) from the single particle correlation matrix.")
-        @showprogress for i =1:length(corrs)
-            Λ_vec[i] = map_calculations.calculate_Λ_from_correlation_matrix(corrs[i],sys_anc_inds,ancilla_inds; eps=1e-14)
-            if i>2
-                L = (Λ_vec[i] - Λ_vec[i-2])/(2*δt)
-                L = L * pinv(Λ_vec[i-1])
-                L_vec[i-2] = L
-            end
-        end
-        return Λ_vec,L_vec
-    end
-    function compute_spectra(Λ_vec,L_vec)
-        spectra_Λ = complex(zeros(length(Λ_vec),size(Λ_vec[1])[1]))
-        spectra_L = complex(zeros(length(L_vec),size(Λ_vec[1])[1]))
-        println("computing map spectra")
-        [spectra_Λ[i,:] = eigen(Λ_vec[i]).values for i=1:length(Λ_vec)] 
-        println("computing propagator spectra")
-        [spectra_L[i,:] = eigen(L_vec[i]).values for i=1:length(L_vec)] 
-        return spectra_Λ,spectra_L
-    end
     function differentiate(x,δt)
         return [(x[i+2] - x[i])/(2*δt) for i in 1:length(x)-2]
-    end
-    
+    end    
     function unvectorise_ρ(ρvec,tr_bool)
 
         d =  Int(sqrt(length(ρvec)))
@@ -375,25 +397,6 @@ module map_calculations
         im_ = imag(z)
         im_ = im_ - 2*π*floor((im_ + π)/(2*π))
         return Complex(real(z), im_)
-    end
-    function NESS_extraction(map,Λ_or_L,Nsys)
-
-        spec = eigen(map).values
-        vecs = eigen(map).vectors
-        spec = map_to_principal.(spec)
-
-        vec = zeros(ComplexF64,2^(2*Nsys))
-        qN = map_calculations.extract_physical_modes(Nsys)
-
-        if Λ_or_L == "Λ"
-            ind = argmax(real.(spec))
-        elseif Λ_or_L == "L"
-            ind = argmin(abs.(spec))
-        end
-
-        vec[qN] = vecs[:,ind]
-        vec =unvectorise_ρ(vec,true)
-        return vec
     end
 
 
