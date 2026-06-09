@@ -35,12 +35,13 @@ using ITensors:
 using NDTensors: unwrap_array_type
 using DataFrames
 
-include("Helper_functions.jl")
-include("Evolution_and_analysis_functions.jl")
-include("HamiltonianBuilding.jl")
-include("ITensor_functions.jl")
-include("Mpemba_functions.jl")
-include("Initialisation.jl")
+include("PhD_modules\\Helper_functions.jl")
+include("PhD_modules\\Evolution_and_analysis_functions.jl")
+include("PhD_modules\\HamiltonianBuilding.jl")
+include("PhD_modules\\ITensor_functions.jl")
+include("PhD_modules\\Mpemba_functions.jl")
+include("PhD_modules\\Initialisation.jl")
+
 
 
 end
