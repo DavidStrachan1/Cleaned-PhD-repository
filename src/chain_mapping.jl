@@ -100,11 +100,19 @@ module chain_mapping
         return J = (Γ/(2*π))*(heaviside(ω .+ D) .- heaviside(ω .- D))
     end
 
+    function smoothed_box_spectral_density(Γ,ω,D)
+        ν =  10
+        denominator = (1 .+exp.(ν*(ω .-D))).*(1 .+exp.(-ν*(ω .+D)))
+        J = (Γ/(2*π)) ./denominator
+        return J
+    end
     function spectral_density(Γ,ω,D,choice)
         if choice == "box"
             J= box_spectral_density(Γ,ω,D)
         elseif choice == "ellipse"
             J = semicircular_density(Γ,ω,D)
+        elseif choice == "smoothed box"
+            J = smoothed_box_spectral_density(Γ,ω,D)
         end
         return J
     end
@@ -333,8 +341,8 @@ module chain_mapping
         # bath-system couplings
         #
 
-        Hsingle = couple_sites(Hsingle,first(layout.filled_bath),last(layout.system),first(tF))
-        Hsingle = couple_sites(Hsingle,first(layout.empty_bath),last(layout.system),first(tE))
+        Hsingle = couple_sites(Hsingle,first(layout.filled_bath),last(qS),first(tF))
+        Hsingle = couple_sites(Hsingle,first(layout.empty_bath),last(qS),first(tE))
 
 
         N = 2*bath.N+Nsys
