@@ -325,14 +325,14 @@ module chain_mapping
 
         #system terms
         for i =1:sys.N_ring
-            Hsingle[qS[i],qS[i]] = -2*sys.B
+            Hsingle[qS[i],qS[i]] = 2*sys.B
             if i <sys.N_ring
-                Hsingle[qS[i+1],qS[i]] = -2*sys.J
-                Hsingle[qS[i],qS[i+1]] = -2*sys.J
+                Hsingle[qS[i+1],qS[i]] = 2*sys.J
+                Hsingle[qS[i],qS[i+1]] = 2*sys.J
             elseif i!= 1
                 @assert(i==sys.N_ring)
-                Hsingle[qS[1],qS[i]] = -2*sys.J
-                Hsingle[qS[i],qS[1]] = -2*sys.J
+                Hsingle[qS[1],qS[i]] = 2*sys.J
+                Hsingle[qS[i],qS[1]] = 2*sys.J
             end
         end
 

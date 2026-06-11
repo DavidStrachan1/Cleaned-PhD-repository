@@ -27,6 +27,12 @@ module map_calculations
     export unvectorise_ρ
     export map_to_principal
     export NESS_extraction
+    export lmult
+    export rmult
+
+    export fermionic_spin_ring_lindblad
+    export markovian_evolution
+    export number_operator
 
     function propagate_correlations(Ci,H_single,times)
         """
@@ -399,5 +405,85 @@ module map_calculations
         return Complex(real(z), im_)
     end
 
+    function rmult(A)
+        """
+        Super-operator representing right-multiplication on a vectorised density matrix
+        """
+        d = size(A)[1]
+        Id = 1.0*Matrix(I, d, d)
+        return kronecker(transpose(A),Id)
+    end
+    function lmult(A)
+        """
+        Super-operator representing left-multiplication on a vectorised density matrix
+        """
+        d = size(A)[1]
+        Id = 1.0*Matrix(I, d, d)
+        return kronecker(Id,A)
+    end
+
+
+    """
+    Markovian functions
+    """
+    function fermionic_spin_ring_lindblad(bath,system)
+
+        d = 2^system.N_ring
+        Id = 1* Matrix(I, d, d)
+        Left_vac = map_calculations.vectorise_mat(Id)
+        cdag,c = map_calculations.matrix_operators(system.N_ring)
+
+        Hsys = complex(zeros(d,d))
+
+        for i =1:system.N_ring
+            Hsys += 2*system.B*cdag[i]*c[i]
+            if i <system.N_ring
+                Hsys += 2*system.J*cdag[i]*c[i+1]
+                Hsys += 2*system.J*cdag[i+1]*c[i]
+
+            elseif i!= 1
+                @assert(i==system.N_ring)
+            # Hsys[1,i] = 2*system.J
+            # Hsys[i,1] = 2*system.J
+                Hsys += 2*system.J*cdag[1]*c[i]
+                Hsys += 2*system.J*cdag[i]*c[1]
+            end
+        end
+
+
+        L_unitary = -im*(map_calculations.rmult(Hsys)- map_calculations.lmult(Hsys))
+
+        Γd = (4/π)*bath.Γ*(1-chain_mapping.fermi_factor(Hsys[1,1],bath.β,bath.μ))
+        Γe = (4/π)*bath.Γ*chain_mapping.fermi_factor(Hsys[1,1],bath.β,bath.μ)
+
+        ind = 3
+        emission = Γd*(map_calculations.rmult(cdag[ind])*map_calculations.lmult(c[ind]) - (1/2)*map_calculations.rmult(cdag[ind]*c[ind]) - (1/2)*map_calculations.lmult(cdag[ind]*c[ind]))
+        absorption = Γe*(map_calculations.rmult(c[ind])*map_calculations.lmult(cdag[ind]) - (1/2)*map_calculations.rmult(c[ind]*cdag[ind]) - (1/2)*map_calculations.lmult(c[ind]*cdag[ind]))
+        L_markovian =L_unitary + absorption + emission
+
+        return L_markovian
+    end
+    function markovian_evolution(L,ρi,times)
+        return [exp(L*t)*ρi for t in times]
+    end
+    function number_operator(ind,Nsys)
+        N = [0 0;0 1]
+        Id = Matrix(I,2,2)
+
+        if ind == 1
+            N_manybody = N
+        else
+            N_manybody = Id
+        end
+
+        for i=1:Nsys-1
+            if i+1 == ind
+                N_manybody = kronecker(N_manybody,N)
+            else
+                N_manybody = kronecker(N_manybody,Id)
+            end
+        end
+        return N_manybody
+    end
 
 end
