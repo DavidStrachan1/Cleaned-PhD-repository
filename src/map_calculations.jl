@@ -426,12 +426,12 @@ module map_calculations
     """
     Markovian functions
     """
-    function fermionic_spin_ring_lindblad(bath,system)
+    function fermionic_spin_ring_lindblad(bath,system,dissipation_ind)
 
         d = 2^system.N_ring
         Id = 1* Matrix(I, d, d)
-        Left_vac = map_calculations.vectorise_mat(Id)
-        cdag,c = map_calculations.matrix_operators(system.N_ring)
+        Left_vac = vectorise_mat(Id)
+        cdag,c = matrix_operators(system.N_ring)
 
         Hsys = complex(zeros(d,d))
 
@@ -451,14 +451,14 @@ module map_calculations
         end
 
 
-        L_unitary = -im*(map_calculations.rmult(Hsys)- map_calculations.lmult(Hsys))
+        L_unitary = -im*(rmult(Hsys)- lmult(Hsys))
+        f = 1 / (exp(bath.β*(2*system.B-bath.μ)) + 1)
+        Γd = (4/π)*bath.Γ*(1-f)
+        Γe = (4/π)*bath.Γ*f
 
-        Γd = (4/π)*bath.Γ*(1-chain_mapping.fermi_factor(Hsys[1,1],bath.β,bath.μ))
-        Γe = (4/π)*bath.Γ*chain_mapping.fermi_factor(Hsys[1,1],bath.β,bath.μ)
-
-        ind = 3
-        emission = Γd*(map_calculations.rmult(cdag[ind])*map_calculations.lmult(c[ind]) - (1/2)*map_calculations.rmult(cdag[ind]*c[ind]) - (1/2)*map_calculations.lmult(cdag[ind]*c[ind]))
-        absorption = Γe*(map_calculations.rmult(c[ind])*map_calculations.lmult(cdag[ind]) - (1/2)*map_calculations.rmult(c[ind]*cdag[ind]) - (1/2)*map_calculations.lmult(c[ind]*cdag[ind]))
+        
+        emission = Γd*(rmult(cdag[dissipation_ind])*lmult(c[dissipation_ind]) - (1/2)*rmult(cdag[dissipation_ind]*c[dissipation_ind]) - (1/2)*lmult(cdag[dissipation_ind]*c[dissipation_ind]))
+        absorption = Γe*(rmult(c[dissipation_ind])*lmult(cdag[dissipation_ind]) - (1/2)*rmult(c[dissipation_ind]*cdag[dissipation_ind]) - (1/2)*lmult(c[dissipation_ind]*cdag[dissipation_ind]))
         L_markovian =L_unitary + absorption + emission
 
         return L_markovian
