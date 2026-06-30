@@ -41,7 +41,7 @@ module Setup
         occupations::Vector{String} # Vector of initial occupations
     end
 
-    Base.@kwdef struct TDVP_parameters
+    Base.@kwdef mutable struct TDVP_parameters
         tdvp_cutoff::Float64 #Numerical cutoff for tdvp
         minbonddim::Int      #Minimum bond dimension for tdvp
         maxbonddim::Int      #Maximum bond dimension for tdvp
@@ -87,15 +87,15 @@ module Setup
 
     function thermofield_spectral_density(ω,bath::BathParameters,::Filled)
         #Spectral density for a filled chain
-        J = box_spectral_density(bath.Γ,ω,bath.D)
-    # J = semicircular_density(bath.Γ,ω,bath.D)
+       # J = box_spectral_density(bath.Γ,ω,bath.D)
+        J = semicircular_density(bath.Γ,ω,bath.D)
         return J * fermi_factor(ω,bath.β,bath.μ)
     end
 
     function thermofield_spectral_density(ω,bath::BathParameters,::Empty)
         #Spectral density for an empty chain
-        J = box_spectral_density(bath.Γ,ω,bath.D)
-    #  J = semicircular_density(bath.Γ,ω,bath.D)
+       # J = box_spectral_density(bath.Γ,ω,bath.D)
+        J = semicircular_density(bath.Γ,ω,bath.D)
         return J * (1 - fermi_factor(ω,bath.β,bath.μ))
     end
 
@@ -122,7 +122,7 @@ module Setup
         #the system and system ancillas in separated fashion.Any
         ##other layout can be encoded here and will follow through to the rest of the code.
 
-        N = 2*(N_left_bath+N_right_bath) + Nsys
+        N = 2*(N_left_bath+N_right_bath) + 2*Nsys
 
         ChainLayout(
             1:2:2*N_left_bath,
@@ -227,7 +227,7 @@ module Setup
         #The system and ancilla are initialised in the empty states.
 
         layout =ChainLayout(left.N,right.N,length(system.ϵ))
-        N = 2*(left.N+right.N)+length(system.ϵ)
+        N = 2*(left.N+right.N)+2*length(system.ϵ)
         
         occs = Vector{String}(undef,N)
         if left.N>0
